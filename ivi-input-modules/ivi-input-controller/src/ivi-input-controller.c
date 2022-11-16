@@ -540,8 +540,7 @@ input_ctrl_ptr_set_west_focus(struct seat_ctx *ctx_seat,
 
     if (NULL == view) {
         view = weston_compositor_pick_view(pointer->seat->compositor,
-                       pointer->x, pointer->y,
-                       &sx, &sy);
+                       pointer->x, pointer->y);
     } else {
         weston_view_from_global_fixed(view, pointer->x,
                         pointer->y, &sx, &sy);
@@ -567,13 +566,13 @@ input_ctrl_ptr_set_west_focus(struct seat_ctx *ctx_seat,
                         ctx_seat, ILM_INPUT_DEVICE_POINTER, ILM_TRUE);
 
                 if (st_focus != NULL) {
-                    weston_pointer_set_focus(pointer, view, sx, sy);
+                    weston_pointer_set_focus(pointer, view);
                 } else {
                     if (NULL != pointer->focus)
                         weston_pointer_clear_focus(pointer);
                 }
             } else {
-                weston_pointer_set_focus(pointer, view, sx, sy);
+                weston_pointer_set_focus(pointer, view);
             }
         } else {
             if (NULL != pointer->focus)
