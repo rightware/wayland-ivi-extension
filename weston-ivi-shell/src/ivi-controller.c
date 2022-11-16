@@ -2113,22 +2113,20 @@ wet_module_init(struct weston_compositor *compositor,
     init_ivi_shell(compositor, shell);
 
     if (setup_ivi_controller_server(compositor, shell)) {
-        destroy_screen_ids(shell);
-        free(shell);
+        ivi_shell_destroy(&shell->destroy_listener, NULL);
         return -1;
     }
 
     if (load_input_module(shell) < 0) {
-        destroy_screen_ids(shell);
-        free(shell);
+        ivi_shell_destroy(&shell->destroy_listener, NULL);
         return -1;
     }
-    /* add compositor destroy signal after loading input
-     * modules, to ensure input module is the first one to
-     * de-initialize
-     */
-    shell->destroy_listener.notify = ivi_shell_destroy;
-    wl_signal_add(&compositor->destroy_signal, &shell->destroy_listener);
+
+    if(shell->interface->shell_add_destroy_listener_once(&shell->destroy_listener,
+                ivi_shell_destroy) == IVI_FAILED){
+        ivi_shell_destroy(&shell->destroy_listener, NULL);
+         return -1;
+     }
 
     if (shell->bkgnd_surface_id && shell->ivi_client_name) {
         loop = wl_display_get_event_loop(compositor->wl_display);
