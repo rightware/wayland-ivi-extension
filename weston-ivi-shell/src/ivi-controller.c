@@ -1871,6 +1871,10 @@ ivi_shell_destroy(struct wl_listener *listener, void *data)
 	struct ivishell *shell =
 		wl_container_of(listener, shell, destroy_listener);
 
+    if(shell->controler_destroy){
+        shell->controler_destroy(shell->input_controller);
+    }
+
         if (shell->client) {
             wl_list_remove(&shell->client_destroy_listener.link);
             wl_client_destroy(shell->client);
@@ -1961,6 +1965,9 @@ init_ivi_shell(struct weston_compositor *ec, struct ivishell *shell)
 
     wl_signal_init(&shell->ivisurface_created_signal);
     wl_signal_init(&shell->ivisurface_removed_signal);
+
+    shell->controler_destroy = NULL;
+    shell->input_controller = NULL;
 }
 
 int
@@ -2117,16 +2124,16 @@ wet_module_init(struct weston_compositor *compositor,
         return -1;
     }
 
-    if (load_input_module(shell) < 0) {
-        ivi_shell_destroy(&shell->destroy_listener, NULL);
-        return -1;
-    }
-
     if(shell->interface->shell_add_destroy_listener_once(&shell->destroy_listener,
                 ivi_shell_destroy) == IVI_FAILED){
         ivi_shell_destroy(&shell->destroy_listener, NULL);
          return -1;
      }
+
+    if (load_input_module(shell) < 0) {
+        ivi_shell_destroy(&shell->destroy_listener, NULL);
+        return -1;
+    }
 
     if (shell->bkgnd_surface_id && shell->ivi_client_name) {
         loop = wl_display_get_event_loop(compositor->wl_display);

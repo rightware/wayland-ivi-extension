@@ -96,6 +96,9 @@ struct ivishell {
     struct wl_client *client;
     char *ivi_client_name;
     char *debug_scopes;
+
+    void (*controler_destroy)(void *data);
+    void *input_controller;
 };
 
 #endif /* WESTON_IVI_SHELL_SRC_IVI_CONTROLLER_H_ */
