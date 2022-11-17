@@ -28,6 +28,7 @@ string(REGEX MATCH "^[0-9]*" WESTON_MAJOR_VERSION ${WESTON_VERSION})
 pkg_check_modules(PIXMAN pixman-1 REQUIRED)
 pkg_check_modules(LIBWESTON_DESKTOP libweston-desktop-${WESTON_MAJOR_VERSION} REQUIRED)
 
+GET_TARGET_PROPERTY(IVI_CONTROLLER_INCLUDE_DIRS ivi-controller INCLUDE_DIRECTORIES)
 find_package(Threads REQUIRED)
 
 include_directories(
@@ -35,6 +36,7 @@ include_directories(
     ${WAYLAND_SERVER_INCLUDE_DIRS}
     ${WESTON_INCLUDE_DIRS}
     ${PIXMAN_INCLUDE_DIRS}
+    ${IVI_CONTROLLER_INCLUDE_DIRS}
 )
 
 link_directories(
