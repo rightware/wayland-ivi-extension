@@ -1501,6 +1501,7 @@ create_surface(struct ivishell *shell,
 
     ivisurf->shell = shell;
     ivisurf->layout_surface = layout_surface;
+    ivisurf->is_empty_buffer = false;
     ivisurf->prop = lyt->get_properties_of_surface(layout_surface);
     wl_list_init(&ivisurf->notification_list);
 
@@ -1682,8 +1683,8 @@ surface_event_configure(struct wl_listener *listener, void *data)
         return;
     }
 
+    w_surface = lyt->surface_get_weston_surface(layout_surface);
     if (ivisurf->type == IVI_WM_SURFACE_TYPE_DESKTOP) {
-        w_surface = lyt->surface_get_weston_surface(layout_surface);
         lyt->surface_set_destination_rectangle(layout_surface,
                                                ivisurf->prop->dest_x,
                                                ivisurf->prop->dest_y,
@@ -1695,6 +1696,20 @@ surface_event_configure(struct wl_listener *listener, void *data)
                                           w_surface->width,
                                           w_surface->height);
         lyt->commit_changes();
+    }
+    else {
+        if(w_surface->width == 0 || w_surface->height == 0)
+        {
+            ivisurf->is_empty_buffer = true;
+        }
+        else
+        {
+            if(ivisurf->is_empty_buffer)
+            {
+                lyt->commit_current();
+                ivisurf->is_empty_buffer = false;
+            }
+        }
     }
 
     wl_list_for_each(not, &ivisurf->notification_list, layout_link) {

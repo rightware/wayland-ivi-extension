@@ -52,6 +52,7 @@ struct ivisurface {
     enum ivi_wm_surface_type type;
     uint32_t frame_count;
     struct wl_list accepted_seat_list;
+    bool is_empty_buffer;
 };
 
 struct ivishell {
