@@ -954,6 +954,7 @@ handle_seat_create(struct wl_listener *listener, void *data)
     struct ivisurface *surf;
     const struct ivi_layout_interface *interface =
         input_ctx->ivishell->interface;
+    int32_t is_default_seat = ILM_FALSE;
     struct seat_ctx *ctx = calloc(1, sizeof *ctx);
     if (ctx == NULL) {
         weston_log("%s: Failed to allocate memory\n", __FUNCTION__);
@@ -974,10 +975,12 @@ handle_seat_create(struct wl_listener *listener, void *data)
     ctx->updated_caps_listener.notify = &handle_seat_updated_caps;
     wl_signal_add(&seat->updated_caps_signal, &ctx->updated_caps_listener);
 
+    is_default_seat = (strcmp(input_ctx->seat_default_name, seat->seat_name))
+                        ? ILM_FALSE : ILM_TRUE;
     wl_resource_for_each(resource, &input_ctx->resource_list) {
         ivi_input_send_seat_created(resource,
                                     seat->seat_name,
-                                    get_seat_capabilities(seat));
+                                    get_seat_capabilities(seat), is_default_seat);
     }
 
     /* If default seat is created, we have to add it to the accepted_seat_list
@@ -1194,6 +1197,7 @@ bind_ivi_input(struct wl_client *client, void *data,
         ctx->ivishell->interface;
     struct seat_focus *st_focus;
     uint32_t ivi_surf_id;
+    int32_t is_default_seat = ILM_FALSE;
 
     resource = wl_resource_create(client, &ivi_input_interface, 1, id);
     wl_resource_set_implementation(resource, &input_implementation,
@@ -1203,8 +1207,10 @@ bind_ivi_input(struct wl_client *client, void *data,
 
     /* Send seat events for all known seats to the client */
     wl_list_for_each(seat, &ctx->ivishell->compositor->seat_list, link) {
+        is_default_seat = (strcmp(ctx->seat_default_name, seat->seat_name))
+                            ? ILM_FALSE : ILM_TRUE;
         ivi_input_send_seat_created(resource, seat->seat_name,
-                                    get_seat_capabilities(seat));
+                                    get_seat_capabilities(seat), is_default_seat);
     }
     /* Send focus and acceptance events for all known surfaces to the client */
     wl_list_for_each(ivisurface, &ctx->ivishell->list_surface, link) {

@@ -754,7 +754,8 @@ static void
 input_listener_seat_created(void *data,
                             struct ivi_input *ivi_input,
                             const char *name,
-                            uint32_t capabilities)
+                            uint32_t capabilities,
+                            int32_t is_default)
 {
     struct wayland_context *ctx = data;
     struct seat_context *seat;
@@ -771,6 +772,7 @@ input_listener_seat_created(void *data,
     }
     seat->seat_name = strdup(name);
     seat->capabilities = capabilities;
+    seat->is_default = (is_default == ILM_TRUE) ? true : false;
     wl_list_insert(&ctx->list_seat, &seat->link);
 }
 

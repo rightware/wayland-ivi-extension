@@ -31,6 +31,7 @@
             </description>
             <arg name="name" type="string"/>
             <arg name="capabilities" type="uint"/>
+            <arg name="is_default" type="int"/>
         </event>
         <event name="seat_capabilities">
             <description summary="A seat's capabilities have changed">
