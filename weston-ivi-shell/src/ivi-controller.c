@@ -1662,17 +1662,9 @@ surface_event_configure(struct wl_listener *listener, void *data)
 
     surface_id = lyt->get_id_of_surface(layout_surface);
     if (shell->bkgnd_surface_id == (int32_t)surface_id) {
-        float red, green, blue, alpha;
 
         if (!shell->bkgnd_view) {
             w_surface = lyt->surface_get_weston_surface(layout_surface);
-
-            alpha = ((shell->bkgnd_color >> 24) & 0xFF) / 255.0F;
-            red = ((shell->bkgnd_color >> 16) & 0xFF) / 255.0F;
-            green = ((shell->bkgnd_color >> 8) & 0xFF) / 255.0F;
-            blue = (shell->bkgnd_color & 0xFF) / 255.0F;
-
-            weston_surface_set_color(w_surface, red, green, blue, alpha);
 
             wl_list_init(&shell->bkgnd_transform.link);
             shell->bkgnd_view = weston_view_create(w_surface);
