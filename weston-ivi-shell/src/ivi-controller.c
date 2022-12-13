@@ -1887,10 +1887,13 @@ ivi_shell_destroy(struct wl_listener *listener, void *data)
 	struct ivishell *shell =
 		wl_container_of(listener, shell, destroy_listener);
 
-        if (shell->client) {
-            wl_list_remove(&shell->client_destroy_listener.link);
-            wl_client_destroy(shell->client);
-        }
+    /*notify the destroy to input-controller and id-agent*/ 
+    wl_signal_emit(&shell->ivishell_destroy_signal, NULL);
+
+    if (shell->client) {
+        wl_list_remove(&shell->client_destroy_listener.link);
+        wl_client_destroy(shell->client);
+    }
 
 	wl_list_remove(&shell->destroy_listener.link);
 
@@ -1981,6 +1984,7 @@ init_ivi_shell(struct weston_compositor *ec, struct ivishell *shell)
     wl_signal_init(&shell->xdgsurface_created_signal);
     wl_signal_init(&shell->ivisurface_created_signal);
     wl_signal_init(&shell->ivisurface_removed_signal);
+    wl_signal_init(&shell->ivishell_destroy_signal);
 }
 
 int
@@ -2113,6 +2117,14 @@ wet_module_init(struct weston_compositor *compositor,
 
     memset(shell, 0, sizeof *shell);
 
+	if (!weston_compositor_add_destroy_listener_once(compositor,
+                            &shell->destroy_listener,
+                            ivi_shell_destroy)) {
+        free(shell);
+        weston_log("ivi-controller initialized.\n");
+        return 0;
+    }
+
     shell->interface = ivi_layout_get_api(compositor);
     if (!shell->interface) {
         free(shell);
@@ -2142,12 +2154,6 @@ wet_module_init(struct weston_compositor *compositor,
         free(shell);
         return -1;
     }
-    /* add compositor destroy signal after loading input
-     * modules, to ensure input module is the first one to
-     * de-initialize
-     */
-    shell->destroy_listener.notify = ivi_shell_destroy;
-    wl_signal_add(&compositor->destroy_signal, &shell->destroy_listener);
 
     if (shell->bkgnd_surface_id && shell->ivi_client_name) {
         loop = wl_display_get_event_loop(compositor->wl_display);

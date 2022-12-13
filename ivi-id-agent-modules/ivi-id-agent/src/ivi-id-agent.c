@@ -337,6 +337,11 @@ id_agent_module_init(struct ivishell *shell)
         goto ivi_failed;
     }
 
+    if (wl_signal_get(&shell->ivishell_destroy_signal, id_agent_module_deinit)) {
+        weston_log("id-agent initialized\n");
+        return IVI_SUCCEEDED;
+    }
+
     ida = calloc(1, sizeof *ida);
     if (ida == NULL) {
         weston_log("failed to allocate ivi_id_agent\n");
@@ -349,7 +354,7 @@ id_agent_module_init(struct ivishell *shell)
     ida->destroy_listener.notify = id_agent_module_deinit;
     ida->surface_removed.notify = surface_event_remove;
 
-    wl_signal_add(&ida->compositor->destroy_signal, &ida->destroy_listener);
+    wl_signal_add(&shell->ivishell_destroy_signal, &ida->destroy_listener);
     wl_signal_add(&shell->xdgsurface_created_signal, &ida->surface_create);
     wl_signal_add(&shell->ivisurface_removed_signal, &ida->surface_removed);
 

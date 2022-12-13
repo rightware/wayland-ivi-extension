@@ -67,6 +67,7 @@ struct ivishell {
     struct wl_signal xdgsurface_created_signal;
     struct wl_signal ivisurface_created_signal;
     struct wl_signal ivisurface_removed_signal;
+    struct wl_signal ivishell_destroy_signal;
 
     struct wl_listener surface_created;
     struct wl_listener surface_removed;
