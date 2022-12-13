@@ -26,7 +26,7 @@ pkg_check_modules(WAYLAND_SERVER wayland-server REQUIRED)
 pkg_check_modules(WESTON weston>=6.0.0 REQUIRED)
 pkg_check_modules(PIXMAN pixman-1 REQUIRED)
 pkg_check_modules(LIBWESTON_DESKTOP libweston-desktop-11 REQUIRED)
-
+GET_TARGET_PROPERTY(IVI_CONTROLLER_INCLUDE_DIRS ivi-controller INCLUDE_DIRECTORIES)
 find_package(Threads REQUIRED)
 
 include_directories(
@@ -34,6 +34,7 @@ include_directories(
     ${WAYLAND_SERVER_INCLUDE_DIRS}
     ${WESTON_INCLUDE_DIRS}
     ${PIXMAN_INCLUDE_DIRS}
+    ${IVI_CONTROLLER_INCLUDE_DIRS}
 )
 
 link_directories(
