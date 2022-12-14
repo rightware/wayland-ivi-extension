@@ -35,6 +35,9 @@
 #  define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a)[0])
 #endif
 
+#define ARG_OPTION_LEN  2 // include '-' and a char
+#define ARG_VALUE_START 3 // value start after "the '-', a char, and the '='"
+
 struct Global
 {
     uint32_t       name;
@@ -79,12 +82,14 @@ registry_handle_global(void *p_data, struct wl_registry *p_registry,
         p_display->p_compositor = wl_registry_bind(p_registry, id,
             &wl_compositor_interface, 1);
     }
-    else if (0 == strcmp(p_interface, "wl_shell"))
+    else if ((0 == strcmp(p_interface, "wl_shell")) &&
+            (p_display->surfaceType == WL_SHELL_SURFACE))
     {
         p_display->p_shell = wl_registry_bind(p_registry, id,
             &wl_shell_interface, 1);
     }
-    else if (0 == strcmp(p_interface, "ivi_application"))
+    else if ((0 == strcmp(p_interface, "ivi_application")) &&
+            (p_display->surfaceType == IVI_APP_SURFACE))
     {
         p_display->p_ivi_application = wl_registry_bind(p_registry, id,
             &ivi_application_interface, 1);
@@ -499,13 +504,32 @@ DisplayAcquireWindowSurface(struct WaylandDisplay *p_display,
     return 0;
 }
 
+bool
+isOptionAvailable(const char *p_option, int argc, char **argv)
+{
+    for (int arg = 1; arg < argc; ++arg) {
+        if ((strlen(argv[arg]) == ARG_OPTION_LEN) &&
+            (strncmp(argv[arg], p_option, ARG_OPTION_LEN) == 0))
+            return true;
+    }
+    return false;
+}
+
+char*
+getStringArgument(const char *p_option, int argc, char **argv)
+{
+    for (int arg = 1; arg < argc; ++arg) {
+        if ((strlen(argv[arg]) > ARG_VALUE_START) &&
+            (strncmp(argv[arg], p_option, ARG_OPTION_LEN) == 0))
+            return (argv[arg] + ARG_VALUE_START);
+    }
+    return NULL;
+}
+
 struct WaylandDisplay *
 CreateDisplay(int argc, char **argv)
 {
     struct WaylandDisplay *p_display;
-
-    _UNUSED_(argc);
-    _UNUSED_(argv);
 
     p_display = (struct WaylandDisplay*)malloc(sizeof(struct WaylandDisplay));
     if (NULL == p_display)
@@ -519,6 +543,24 @@ CreateDisplay(int argc, char **argv)
         fprintf(stderr, "[ERR] failed to connect to wayland: %m\n");
         free(p_display);
         return NULL;
+    }
+
+    char *lpSurfaceSelection = getStringArgument("-s", argc, argv);
+    if (lpSurfaceSelection) {
+        if (strcmp(lpSurfaceSelection, "wl_shell") == 0) {
+            p_display->surfaceType = WL_SHELL_SURFACE;
+        }
+        else if (strcmp(lpSurfaceSelection, "ivi_app") == 0) {
+            p_display->surfaceType = IVI_APP_SURFACE;
+        }
+        else {
+            lpSurfaceSelection = NULL;
+        }
+    }
+
+    if (lpSurfaceSelection == NULL) {
+        printf("no surface select option, set the default: ivi_app\n");
+        p_display->surfaceType = IVI_APP_SURFACE;
     }
 
     p_display->epoll_fd = os_epoll_create_cloexec();
